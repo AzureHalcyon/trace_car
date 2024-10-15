@@ -9,51 +9,49 @@ CarState roundFlag;
 
 
 CarState determineState(int *sensors) {
-    // Ê®×ÖÂ·¿Ú/Í£³µÇøÅÐ¶Ï£ºËùÓÐ´«¸ÐÆ÷ÎªºÚÉ«
-    int i; 
+    // Ê®ï¿½ï¿½Â·ï¿½ï¿½/Í£ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï£ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½É«
+    static int i=0;
     if (sensors[0] == 1 && sensors[1] == 1 && sensors[2] == 1 &&
         sensors[3] == 1 && sensors[4] == 1) {     
-        if (i!=5){
-            i++;
-        }else if (i == 5){
+        if (i>10){
+            return STATE_STOP;
+        }else {
             i++;
             return STATE_STRAIGHT;
-        }else if (i ==10){
-            return STATE_STOP;
         }
-    }else{
-        i = 0;
-    }
+    }//å¾…æµ‹è¯•
     
-    // »·µºÅÐ¶Ï£ºM°×É«£¬L1ºÍR1ºÚÉ«£¬Í¬Ê±L2»òR2ÓÐºÚÉ«
-    if (sensors[2] == 0 && sensors[1] == 1 && sensors[3] == 1 &&
-        (sensors[0] == 1 || sensors[4] == 1)) {
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï£ï¿½Mï¿½ï¿½É«ï¿½ï¿½L1ï¿½ï¿½R1ï¿½ï¿½É«ï¿½ï¿½Í¬Ê±L2ï¿½ï¿½R2ï¿½Ðºï¿½É«
+    else{
+    i=0;
+    if (sensors[2] == 0 && (sensors[1] == 1 || sensor[0] ==1) && (sensors[3] == 1 || sensor[4] ==1 )) {
         lastState == STATE_ROUNDABOUT;
         return STATE_ROUNDABOUT;
     }
 
-    // ×ó×ª
-    if ((sensors[0] == 1 || sensors[1] == 1) && sensors[3] == 0 && sensors[4] == 0) {
+    // ï¿½ï¿½×ª
+    if ((sensors[0] == 1 || sensors[1] == 1) && sensors[2] == 0 && sensors[3] == 0 && sensors[4] == 0) {
         lastState == STATE_TURN_LEFT;
         return STATE_TURN_LEFT;
     }
 
-    // ÓÒ×ª
-    if (sensors[3] == 1 && sensors[4] == 1 && (sensors[0] == 0 || sensors[1] == 0)) {
+    // ï¿½ï¿½×ª
+    if ((sensors[3] == 1 || sensors[4] == 1) && sensors[2] == 0 && sensors[0] == 0 && sensors[1] == 0) {
         lastState == STATE_TURN_RIGHT;
         return STATE_TURN_RIGHT;
     }
+    }
 
-    // Ä¬ÈÏÖ±ÐÐ
+    // Ä¬ï¿½ï¿½Ö±ï¿½ï¿½
     lastState == STATE_STRAIGHT;
     return STATE_STRAIGHT;
 }
 
-//Ð¡³µ¿ÉÒÔ½üËÆ¿´×÷Ò»Á¾Ë«ÂÖ²îËÙ¿ØÖÆµÄ³µ£¬Á½²à³µÂÖµÄËÙ¶È²î¾ö¶¨×ªÍä°ë¾¶¡£
-//¼ÙÉèÎÞ´ò»¬¡¢µÍËÙÐÐÊ»£¬¿ÉÒÔºöÂÔ¹ßÐÔÓ°Ïì¡£ÎÒÃÇÖ±½ÓÍ¨¹ý²îËÙÀ´¿ØÖÆ·½Ïò£¬²¢ÇÒ½«µç»úµÄ±àÂëÆ÷·´À¡×÷ÎªÊµ¼ÊËÙ¶È½øÐÐ±Õ»·¿ØÖÆ£¬×îºó¿¼ÂÇ³ËÒÔÒ»¸ö²¹³¥ÏµÊýÀ´µ÷ÕûËÙ¶È¡£
-//²îËÙ×ªÏòÄ£ÐÍ£º
-//×ªÏò°ë¾¶ RÓëÁ½²à³µÂÖËÙ¶ÈµÄ¹ØÏµ£º
-//×óÂÖËÙ¶ÈVL = V - wL * d / 2 , ÓÒÂÖËÙ¶ÈVR = V + wR * d / 2 ,³µÂÖ¼ä¾àd = 150mm , ×ªÏò°ë¾¶R = d / 2 * (VL + VR) / (VR - VL)
+//Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½Ô½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ë«ï¿½Ö²ï¿½ï¿½Ù¿ï¿½ï¿½ÆµÄ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à³µï¿½Öµï¿½ï¿½Ù¶È²ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ë¾¶ï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½ï¿½Þ´ò»¬¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê»ï¿½ï¿½ï¿½ï¿½ï¿½Ôºï¿½ï¿½Ô¹ï¿½ï¿½ï¿½Ó°ï¿½ì¡£ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ò£¬²ï¿½ï¿½Ò½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÊµï¿½ï¿½ï¿½Ù¶È½ï¿½ï¿½Ð±Õ»ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½Ç³ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È¡ï¿½
+//ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Ä£ï¿½Í£ï¿½
+//×ªï¿½ï¿½ë¾¶ Rï¿½ï¿½ï¿½ï¿½ï¿½à³µï¿½ï¿½ï¿½Ù¶ÈµÄ¹ï¿½Ïµï¿½ï¿½
+//ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½VL = V - wL * d / 2 , ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½VR = V + wR * d / 2 ,ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½d = 150mm , ×ªï¿½ï¿½ë¾¶R = d / 2 * (VL + VR) / (VR - VL)
 
 void handleState(CarState state, int *sensors) {
     switch (state) {
@@ -61,8 +59,8 @@ void handleState(CarState state, int *sensors) {
             float error = calculateError(sensors);
             float correction = calculatePID(error);
 
-            float left_speed = BASE_SPEED - correction;  // ×óÂÖ¼õÈ¥ÐÞÕýÁ¿
-            float right_speed = BASE_SPEED + correction; // ÓÒÂÖ¼ÓÉÏÐÞÕýÁ¿
+            float left_speed = BASE_SPEED - correction;  // ï¿½ï¿½ï¿½Ö¼ï¿½È¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            float right_speed = BASE_SPEED + correction; // ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
             setMotorPWM(left_speed, right_speed);
             break;
@@ -73,12 +71,12 @@ void handleState(CarState state, int *sensors) {
             if (round_counter < 1){
                 round_counter++;
                 if (lastState == STATE_TURN_LEFT){
-                    left_speed = BASE_SPEED + BASE_ERROR;
-                    right_speed = BASE_SPEED - BASE_ERROR;
-                    roundFlag = STATE_TURN_LEFT;
-                }else if (lastState == STATE_TURN_RIGHT){
                     left_speed = BASE_SPEED - BASE_ERROR;
                     right_speed = BASE_SPEED + BASE_ERROR;
+                    roundFlag = STATE_TURN_LEFT;
+                }else if (lastState == STATE_TURN_RIGHT){
+                    left_speed = BASE_SPEED + BASE_ERROR;
+                    right_speed = BASE_SPEED - BASE_ERROR;
                     roundFlag = STATE_TURN_RIGHT;
                 }
             }else{
@@ -90,9 +88,9 @@ void handleState(CarState state, int *sensors) {
                     left_speed = BASE_SPEED + BASE_ERROR;
                     right_speed = BASE_SPEED - BASE_ERROR;
                 }
-            // »·µº×´Ì¬ÏÂ£¬Ðè¸ù¾ÝºÚÏßÎ»ÖÃ±£³ÖÐ¡³µÑØ×Å»·µº±ßÔµÐÐÊ»
+            // ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½Ýºï¿½ï¿½ï¿½Î»ï¿½Ã±ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½Ê»
 
-            // Ôö¼ÓÏò»·µº×ªÏòµÄÇãÏò
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ò»·µï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             setMotorPWM(left_speed, right_speed);
 
             break;
