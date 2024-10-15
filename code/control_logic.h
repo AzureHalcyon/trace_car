@@ -13,6 +13,10 @@ typedef enum {
     STATE_BLIND       // ÅÜ·É
 } CarState;
 
+extern CarState currentState;//µ±Ç°µÄ×´Ì¬
+
+CarState determineState(int *sensors);
+void handleState(CarState state, int *sensors);
 
 #endif // !__CONTROL_LOGIC_H
 

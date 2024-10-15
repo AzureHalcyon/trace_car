@@ -4,19 +4,24 @@
 int round_counter = 0;
 
 CarState currentState = STATE_STRAIGHT;
-CarState lastState;
-CarState roundFlag;
+CarState lastState;//上一次的状态
+CarState roundFlag;//环岛次数
 
-
+/**
+ * @brief 根据二值化之后的数据，判断小车当前的状态
+ * 
+ * @example determineState(sensors);
+ * @param sensors 传感器数组
+ * @param lastState 上一次的状态
+ * @return CarState 返回小车当前的状态
+ */
 CarState determineState(int *sensors) {
     // 十字路口/停车区判断：所有传感器为黑色
-    int i; 
+    static int i = 0; 
     if (sensors[0] == 1 && sensors[1] == 1 && sensors[2] == 1 &&
-        sensors[3] == 1 && sensors[4] == 1) {     
-        if (i!=5){
-            i++;
-        }else if (i == 5){
-            i++;
+        sensors[3] == 1 && sensors[4] == 1) {  
+        i++;       
+        if (i == 5){
             return STATE_STRAIGHT;
         }else if (i ==10){
             return STATE_STOP;
@@ -29,23 +34,33 @@ CarState determineState(int *sensors) {
     if (sensors[2] == 0 && sensors[1] == 1 && sensors[3] == 1 &&
         (sensors[0] == 1 || sensors[4] == 1)) {
         lastState == STATE_ROUNDABOUT;
+        if (sensors[0] == 1) {
+            roundFlag = STATE_TURN_LEFT;
+        } else if (sensors[4] == 1) {
+            roundFlag = STATE_TURN_RIGHT;
+        }
         return STATE_ROUNDABOUT;
     }
 
     // 左转
     if ((sensors[0] == 1 || sensors[1] == 1) && sensors[3] == 0 && sensors[4] == 0) {
-        lastState == STATE_TURN_LEFT;
+        lastState = STATE_TURN_LEFT;
         return STATE_TURN_LEFT;
     }
 
     // 右转
     if (sensors[3] == 1 && sensors[4] == 1 && (sensors[0] == 0 || sensors[1] == 0)) {
-        lastState == STATE_TURN_RIGHT;
+        lastState = STATE_TURN_RIGHT;
         return STATE_TURN_RIGHT;
     }
 
+    //防止跑飞
+    if (sensors[0] == 0 && sensors[1] == 0 && sensors[2] == 0 &&
+        sensors[3] == 0 && sensors[4] == 0) {
+        return STATE_STOP;
+    }
     // 默认直行
-    lastState == STATE_STRAIGHT;
+    lastState = STATE_STRAIGHT;
     return STATE_STRAIGHT;
 }
 
@@ -55,6 +70,13 @@ CarState determineState(int *sensors) {
 //转向半径 R与两侧车轮速度的关系：
 //左轮速度VL = V - wL * d / 2 , 右轮速度VR = V + wR * d / 2 ,车轮间距d = 150mm , 转向半径R = d / 2 * (VL + VR) / (VR - VL)
 
+/**
+ * @brief 通过当前的状态，指示小车的行动
+ * 
+ * @example handleState(currentState, sensors);
+ * @param state 状态枚举
+ * @param sensors 传感器数组
+ */
 void handleState(CarState state, int *sensors) {
     switch (state) {
         case STATE_STRAIGHT: {
@@ -75,11 +97,11 @@ void handleState(CarState state, int *sensors) {
                 if (lastState == STATE_TURN_LEFT){
                     left_speed = BASE_SPEED + BASE_ERROR;
                     right_speed = BASE_SPEED - BASE_ERROR;
-                    roundFlag = STATE_TURN_LEFT;
+                    // roundFlag = STATE_TURN_LEFT;
                 }else if (lastState == STATE_TURN_RIGHT){
                     left_speed = BASE_SPEED - BASE_ERROR;
                     right_speed = BASE_SPEED + BASE_ERROR;
-                    roundFlag = STATE_TURN_RIGHT;
+                    // roundFlag = STATE_TURN_RIGHT;
                 }
             }else{
                 round_counter = 0;
@@ -90,15 +112,16 @@ void handleState(CarState state, int *sensors) {
                     left_speed = BASE_SPEED + BASE_ERROR;
                     right_speed = BASE_SPEED - BASE_ERROR;
                 }
-            // 环岛状态下，需根据黑线位置保持小车沿着环岛边缘行驶
+                // 环岛状态下，需根据黑线位置保持小车沿着环岛边缘行驶
+                // 增加向环岛转向的倾向
+                setMotorPWM(left_speed, right_speed);
 
-            // 增加向环岛转向的倾向
-            setMotorPWM(left_speed, right_speed);
-
-            break;
+                break;
+            }
         }
 
-        case STATE_TURN_LEFT||STATE_TURN_RIGHT: {
+        case STATE_TURN_LEFT:
+        case STATE_TURN_RIGHT: {
             float error = calculateError(sensors);
             float correction = calculatePID(error);
 

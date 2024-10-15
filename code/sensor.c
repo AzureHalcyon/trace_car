@@ -29,10 +29,10 @@ bool read_a_sensor(sensor_struct* sensor){
 }
 
 void read_sensor(){
-    sensors[0] == read_a_sensor(&sensor_L2);
-    sensors[1] == read_a_sensor(&sensor_L1);
-    sensors[2] == read_a_sensor(&sensor_M);
-    sensors[3] == read_a_sensor(&sensor_R1);
-    sensors[4] == read_a_sensor(&sensor_R2);
+    sensors[0] = read_a_sensor(&sensor_L2);
+    sensors[1] = read_a_sensor(&sensor_L1);
+    sensors[2] = read_a_sensor(&sensor_M);
+    sensors[3] = read_a_sensor(&sensor_R1);
+    sensors[4] = read_a_sensor(&sensor_R2);
     // printf("%d,%d,%d,%d,%d\n",sensor_L2.sensor_output,sensor_L1.sensor_output,sensor_M.sensor_output,sensor_R1.sensor_output,sensor_R2.sensor_output);
 }

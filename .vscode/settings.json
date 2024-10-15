@@ -3,6 +3,12 @@
         "zf_common_headfile.h": "c",
         "turning_pid.h": "c",
         "control.h": "c",
-        "control_logic.h": "c"
-    }
+        "control_logic.h": "c",
+        "motor_driver.h": "c",
+        "sensor.h": "c"
+    },
+    "files.encoding": "gbk",
+    "projectManager.git.baseFolders": [
+        "D:\\Works\\trace_car"
+    ]
 }
