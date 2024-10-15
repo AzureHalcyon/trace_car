@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "zf_common_headfile.h": "c",
+        "turning_pid.h": "c",
+        "control.h": "c",
+        "control_logic.h": "c"
+    }
+}
