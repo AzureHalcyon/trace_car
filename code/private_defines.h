@@ -27,6 +27,7 @@
 #define MAX_PWM                 9999     // 最大PWM输出
 #define MIN_PWM                 0       // 最小PWM输出
 #define SRATIO                  1.5     //pwm最终的比例系数（需要修改）
+#define integral_max            1000    // 积分上限
 
 #endif // !__PRIVATE_DEFINES_H
 

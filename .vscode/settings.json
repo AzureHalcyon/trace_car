@@ -5,10 +5,12 @@
         "control.h": "c",
         "control_logic.h": "c",
         "motor_driver.h": "c",
-        "sensor.h": "c"
+        "sensor.h": "c",
+        "user_thread.h": "c"
     },
     "files.encoding": "gbk",
     "projectManager.git.baseFolders": [
         "D:\\Works\\trace_car"
-    ]
+    ],
+    "C_Cpp.default.compilerPath": "d:\\Dev-Cpp\\MinGW64\\bin\\gcc.exe"
 }

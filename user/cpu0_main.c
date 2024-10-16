@@ -35,7 +35,8 @@
 #include "zf_common_headfile.h"
 #pragma section all "cpu0_dsram"
 // 将本语句与#pragma section all restore语句之间的全局变量都放在CPU0的RAM中
-
+#include "user_thread.h"
+#include "private_defines.h"
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
@@ -47,21 +48,20 @@ int core0_main(void)
     clock_init();                   // 获取时钟频率<务必保留>
     debug_init();                   // 初始化默认调试串口
     // 此处编写用户代码 例如外设初始化代码等
-
-
-
+    user_init();
 
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();         // 等待所有核心初始化完毕
-    while (TRUE)
-    {
-        // 此处编写需要循环执行的代码
+    while (TRUE){}
+}
 
+IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
+{
+    interrupt_global_enable(0);                     // 开启中断嵌套
+    pit_clear_flag(CCU60_CH0);
 
+    user_activities();
 
-
-        // 此处编写需要循环执行的代码
-    }
 }
 
 #pragma section all restore

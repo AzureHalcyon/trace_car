@@ -15,11 +15,11 @@ void read_sensor_init(){
     adc_init(Sensor_M, ADC_8BIT);
     adc_init(Sensor_R1, ADC_8BIT);
     adc_init(Sensor_R2, ADC_8BIT);
-    sensor_L2.sensor_pin=Sensor_L2;
-    sensor_L1.sensor_pin=Sensor_L1;
-    sensor_M.sensor_pin=Sensor_M;
-    sensor_R1.sensor_pin=Sensor_R1;
-    sensor_R2.sensor_pin=Sensor_R2;
+    sensor_L2.sensor_pin = Sensor_L2;
+    sensor_L1.sensor_pin = Sensor_L1;
+    sensor_M.sensor_pin = Sensor_M;
+    sensor_R1.sensor_pin = Sensor_R1;
+    sensor_R2.sensor_pin = Sensor_R2;
 }
 
 bool read_a_sensor(sensor_struct* sensor){
@@ -28,6 +28,12 @@ bool read_a_sensor(sensor_struct* sensor){
     return sensor->sensor_output;
 }
 
+/**
+ * @brief 读取五个传感器的数据
+ * 
+ * @example read_sensor();
+ * @param sensors 传感器数组
+ */
 void read_sensor(){
     sensors[0] = read_a_sensor(&sensor_L2);
     sensors[1] = read_a_sensor(&sensor_L1);
