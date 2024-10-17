@@ -33,6 +33,7 @@
 * 2022-09-15       pudding            first version
 ********************************************************************************************************************/
 #include "zf_common_headfile.h"
+#include "math.h"
 #pragma section all "cpu0_dsram"
 // 将本语句与#pragma section all restore语句之间的全局变量都放在CPU0的RAM中
 
@@ -61,11 +62,12 @@
 void turns();
 
 int sensors[5];
-int threshold_white[5] = {53, 66, 91, 65, 68}; // 每个传感器的纯白阈值
+int threshold_white[5] = {53, 64, 93, 70, 64}; // 每个传感器的纯白阈值
 int threshold_black[5] = {19, 21, 34, 20, 22}; // 每个传感器的纯黑阈值
 float normalized_sensors[5];
+int white_threshold = 0.9; // 纯白阈值
 
-int base_speed = 2000; // 基础速度
+int base_speed = 4000; // 基础速度
 int max_speed_diff = 1000; // 最大速度差
 
 int core0_main(void)
@@ -109,20 +111,22 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
 }
 
 void turns(){
-    sensors[0] = adc_mean_filter_convert(Sensor_L2, 5);//纯白大约50~53，纯黑大约17~19
-    sensors[1] = adc_mean_filter_convert(Sensor_L1, 5);//纯白大约62~66，纯黑大约19~21
-    sensors[2] = adc_mean_filter_convert(Sensor_M, 5); //纯白大约89~91，纯黑大约32~34（94~98，27~34）
-    sensors[3] = adc_mean_filter_convert(Sensor_R1, 5);//纯白大约61~65，纯黑大约18~20（纯白也有68~70）
-    sensors[4] = adc_mean_filter_convert(Sensor_R2, 5);//纯白大约64~68，纯黑大约19~22
+    sensors[0] = adc_mean_filter_convert(Sensor_L2, 10);//纯白大约50~53，纯黑大约17~19
+    sensors[1] = adc_mean_filter_convert(Sensor_L1, 10);//纯白大约62~66，纯黑大约19~21
+    sensors[2] = adc_mean_filter_convert(Sensor_M, 10); //纯白大约89~91，纯黑大约32~34（94~98，27~34）
+    sensors[3] = adc_mean_filter_convert(Sensor_R1, 10);//纯白大约61~65，纯黑大约18~20（纯白也有68~70）
+    sensors[4] = adc_mean_filter_convert(Sensor_R2, 10);//纯白大约64~68，纯黑大约19~22
 
 
 
-    system_delay_ms(100);
-    // printf("%d,",sensors[0]);
-    // printf("%d,",sensors[1]);
-    // printf("%d,",sensors[2]);
-    // printf("%d,",sensors[3]);
-    // printf("%d\n",sensors[4]);
+//    system_delay_ms(100);
+    
+//    printf("sensors: ");
+//    printf("%d,",sensors[0]);
+//    printf("%d,",sensors[1]);
+//    printf("%d,",sensors[2]);
+//    printf("%d,",sensors[3]);
+//    printf("%d\n",sensors[4]);
 
     //如果两侧的传感器小于纯白，根据与纯白的差值调整PWM,中间如果大于纯黑，同理。
     //思路：每个传感器的阈值有所不同，先进行单位化，然后求和，根据和的大小，调整PWM，采用差速驱动
@@ -137,44 +141,43 @@ void turns(){
     float sum_right = normalized_sensors[3] + normalized_sensors[4];
     float sum_middle = normalized_sensors[2];
 
-    printf("%d,",normalized_sensors[0]);
-    printf("%d,",normalized_sensors[1]);
-    printf("%d,",normalized_sensors[2]);
-    printf("%d,",normalized_sensors[3]);
-    printf("%d\n",normalized_sensors[4]);
-
+//    printf("normalized_sensors: ");
+//    printf("%f,",normalized_sensors[0]);
+//    printf("%f,",normalized_sensors[1]);
+//    printf("%f,",normalized_sensors[2]);
+//    printf("%f,",normalized_sensors[3]);
+//    printf("%f\n",normalized_sensors[4]);
+//
+    printf("sum: ");
     printf("%f,",sum_left);
     printf("%f,",sum_middle);
     printf("%f\n",sum_right);
 
-
+    if (sum_middle < 0.3 && sum_right > 0.7 && sum_left > 0.7) {
+        // 中间传感器检测到黑线，直行
+        pwm_set_duty(PWMA, base_speed);
+        pwm_set_duty(PWMB, base_speed);
+        printf("straight!\n");
+    } else if (fabs(sum_left - sum_right) > 1.2){
+        // 根据左右传感器的总和调整PWM
+        int speed_diff = (int)((sum_left - sum_right) * max_speed_diff);
+        pwm_set_duty(PWMA, base_speed - speed_diff);
+        pwm_set_duty(PWMB, base_speed + speed_diff);
+        printf("turning!\n");
+    }
 
     // 防跑飞保护
-    int white_threshold = 0.9; // 纯白阈值
-    if (normalized_sensors[0] > white_threshold && normalized_sensors[1] > white_threshold &&
-        normalized_sensors[2] > white_threshold && normalized_sensors[3] > white_threshold &&
-        normalized_sensors[4] > white_threshold) {
+
+    if (sum_middle > 0.9 && fabs(sum_left - sum_right) < 0.25) {
         // 所有传感器都检测到纯白，停止小车
-        // pwm_set_duty(PWMA, 0);
-        // pwm_set_duty(PWMB, 0);
-        printf("stopped!");
+        pwm_set_duty(PWMA, 0);
+        pwm_set_duty(PWMB, 0);
+        printf("stopped!\n");
         return;
     }
 
-    if (sum_middle > 0.5) {
-        // 中间传感器检测到黑线，直行
-        // pwm_set_duty(PWMA, base_speed);
-        // pwm_set_duty(PWMB, base_speed);
-        printf("straight!");
-    } else {
-        // 根据左右传感器的总和调整PWM
-        int speed_diff = (int)((sum_left - sum_right) * max_speed_diff);
-        // pwm_set_duty(PWMA, base_speed + speed_diff);
-        // pwm_set_duty(PWMB, base_speed - speed_diff);
-        printf("turning!");
-    }
-}
 
+}
 
 #pragma section all restore
 // **************************** 代码区域 ****************************
