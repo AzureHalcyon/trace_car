@@ -60,6 +60,7 @@
 // **************************** 代码区域 ****************************
 
 void turns();
+float calculatePID(float error);
 
 int sensors[5];
 int threshold_white[5] = {53, 64, 93, 70, 64}; // 每个传感器的纯白阈值
@@ -69,6 +70,11 @@ int white_threshold = 0.9; // 纯白阈值
 
 int base_speed = 4000; // 基础速度
 int max_speed_diff = 1000; // 最大速度差
+
+int integral_max = 100;
+
+float Kp = 3.0, Ki = 0.3, Kd = 0.7; // PID系数
+float error = 0, last_error = 0, integral = 0;
 
 int core0_main(void)
 {
@@ -158,9 +164,9 @@ void turns(){
         pwm_set_duty(PWMA, base_speed);
         pwm_set_duty(PWMB, base_speed);
         printf("straight!\n");
-    } else if (fabs(sum_left - sum_right) > 1.2){
+    } else if (fabs(sum_left - sum_right) > 0.8){
         // 根据左右传感器的总和调整PWM
-        int speed_diff = (int)((sum_left - sum_right) * max_speed_diff);
+        int speed_diff = (int)(calculatePID(sum_left - sum_right) * max_speed_diff);
         pwm_set_duty(PWMA, base_speed - speed_diff);
         pwm_set_duty(PWMB, base_speed + speed_diff);
         printf("turning!\n");
@@ -176,6 +182,51 @@ void turns(){
         return;
     }
 
+
+}
+
+
+
+//float calculateError(int *sensors) {
+//
+////黑线在左侧偏负，在右侧偏正
+//
+//return (2 * sensors[0] + sensors[1] - sensors[3] - 2 * sensors[4]);
+//
+//}
+
+/**
+
+* @brief 使用位置式 PID 控制器,根据当前误差来调整车轮的速度差异，以保持小车在黑线的中间
+
+*
+
+* @param error 偏差
+
+* @return float 返回修正量
+
+
+*/
+
+float calculatePID(float error) {
+
+float P = Kp * error;
+
+integral += error;
+
+if (integral > integral_max) integral = integral_max;
+
+if (integral < -integral_max) integral = -integral_max;
+
+float I = Ki * integral;
+
+float D = Kd * (error - last_error);
+
+last_error = error;
+
+float delta = P + I + D;
+
+return delta;
 
 }
 
