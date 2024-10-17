@@ -61,6 +61,12 @@
 void turns();
 
 int sensors[5];
+int threshold_white[5] = {53, 66, 91, 65, 68}; // 每个传感器的纯白阈值
+int threshold_black[5] = {19, 21, 34, 20, 22}; // 每个传感器的纯黑阈值
+float normalized_sensors[5];
+
+int base_speed = 2000; // 基础速度
+int max_speed_diff = 1000; // 最大速度差
 
 int core0_main(void)
 {
@@ -112,13 +118,63 @@ void turns(){
 
 
     system_delay_ms(100);
-    printf("%d,",sensors[0]);
-    printf("%d,",sensors[1]);
-    printf("%d,",sensors[2]);
-    printf("%d,",sensors[3]);
-    printf("%d\n",sensors[4]);
+    // printf("%d,",sensors[0]);
+    // printf("%d,",sensors[1]);
+    // printf("%d,",sensors[2]);
+    // printf("%d,",sensors[3]);
+    // printf("%d\n",sensors[4]);
 
+    //如果两侧的传感器小于纯白，根据与纯白的差值调整PWM,中间如果大于纯黑，同理。
+    //思路：每个传感器的阈值有所不同，先进行单位化，然后求和，根据和的大小，调整PWM，采用差速驱动
+
+    // 转弯逻辑
+
+    for (int i = 0; i < 5; i++) {
+        normalized_sensors[i] = (float)(sensors[i] - threshold_black[i]) / (threshold_white[i] - threshold_black[i]);
+    }
+
+    float sum_left = normalized_sensors[0] + normalized_sensors[1];
+    float sum_right = normalized_sensors[3] + normalized_sensors[4];
+    float sum_middle = normalized_sensors[2];
+
+    printf("%d,",normalized_sensors[0]);
+    printf("%d,",normalized_sensors[1]);
+    printf("%d,",normalized_sensors[2]);
+    printf("%d,",normalized_sensors[3]);
+    printf("%d\n",normalized_sensors[4]);
+
+    printf("%f,",sum_left);
+    printf("%f,",sum_middle);
+    printf("%f\n",sum_right);
+
+
+
+    // 防跑飞保护
+    int white_threshold = 0.9; // 纯白阈值
+    if (normalized_sensors[0] > white_threshold && normalized_sensors[1] > white_threshold &&
+        normalized_sensors[2] > white_threshold && normalized_sensors[3] > white_threshold &&
+        normalized_sensors[4] > white_threshold) {
+        // 所有传感器都检测到纯白，停止小车
+        // pwm_set_duty(PWMA, 0);
+        // pwm_set_duty(PWMB, 0);
+        printf("stopped!");
+        return;
+    }
+
+    if (sum_middle > 0.5) {
+        // 中间传感器检测到黑线，直行
+        // pwm_set_duty(PWMA, base_speed);
+        // pwm_set_duty(PWMB, base_speed);
+        printf("straight!");
+    } else {
+        // 根据左右传感器的总和调整PWM
+        int speed_diff = (int)((sum_left - sum_right) * max_speed_diff);
+        // pwm_set_duty(PWMA, base_speed + speed_diff);
+        // pwm_set_duty(PWMB, base_speed - speed_diff);
+        printf("turning!");
+    }
 }
+
 
 #pragma section all restore
 // **************************** 代码区域 ****************************
