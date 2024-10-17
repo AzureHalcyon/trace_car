@@ -40,16 +40,48 @@
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 
+#define PWMA                    (ATOM0_CH1_P21_3)
+#define PWMB                    (ATOM0_CH0_P21_2)
+#define AIN1                    (P22_2)
+#define AIN2                    (P22_3)
+#define BIN1                    (P22_1)
+#define BIN2                    (P22_0)
+#define STBY                    (P23_1)
+#define ENA                     (P33_7)
+#define ENB                     (P33_6)
+
+#define Sensor_L2               (ADC0_CH0_A0)
+#define Sensor_L1               (ADC0_CH1_A1)
+#define Sensor_M                (ADC0_CH2_A2)
+#define Sensor_R1               (ADC0_CH3_A3)
+#define Sensor_R2               (ADC0_CH4_A4)
 
 // **************************** 代码区域 ****************************
+
+void turns();
+
+int sensors[5];
+
 int core0_main(void)
 {
     clock_init();                   // 获取时钟频率<务必保留>
     debug_init();                   // 初始化默认调试串口
     // 此处编写用户代码 例如外设初始化代码等
 
-
-
+    encoder_quad_init(TIM2_ENCODER, TIM2_ENCODER_CH1_P33_7, TIM2_ENCODER_CH2_P33_6);
+    gpio_init(STBY, GPO, 1, GPO_PUSH_PULL);
+    gpio_init(AIN1, GPO, 1, GPO_PUSH_PULL);
+    gpio_init(AIN2, GPO, 0, GPO_PUSH_PULL);
+    gpio_init(BIN1, GPO, 1, GPO_PUSH_PULL);
+    gpio_init(BIN2, GPO, 0, GPO_PUSH_PULL);
+    adc_init(Sensor_L1, ADC_8BIT);
+    adc_init(Sensor_L2, ADC_8BIT);
+    adc_init(Sensor_M, ADC_8BIT);
+    adc_init(Sensor_R1, ADC_8BIT);
+    adc_init(Sensor_R2, ADC_8BIT);
+    pwm_init(PWMA, 1000, 10000);
+    pwm_init(PWMB, 1000, 10000);
+    pit_ms_init(CCU60_CH0 , 25);
 
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();         // 等待所有核心初始化完毕
@@ -57,10 +89,48 @@ int core0_main(void)
     {
         // 此处编写需要循环执行的代码
 
-
-
-
         // 此处编写需要循环执行的代码
+    }
+}
+
+IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
+{
+    interrupt_global_enable(0);                     // 开启中断嵌套
+    pit_clear_flag(CCU60_CH0);
+    // encoder_get_count(TIM2_ENCODER);
+    turns();
+
+}
+
+void turns(){
+    sensors[0] = adc_mean_filter_convert(Sensor_L2, 5);
+    sensors[1] = adc_mean_filter_convert(Sensor_L1, 5);
+    sensors[2] = adc_mean_filter_convert(Sensor_M, 5);
+    sensors[3] = adc_mean_filter_convert(Sensor_R1, 5);
+    sensors[4] = adc_mean_filter_convert(Sensor_R2, 5);
+
+    if (sensors[1]>30){
+        pwm_set_duty(PWMA, 100+50);
+        pwm_set_duty(PWMB, 100-50);
+        printf("L1\n");
+    }else if (sensors[3]>30){
+        pwm_set_duty(PWMA, 100-50);
+        pwm_set_duty(PWMB, 100+50);
+        printf("R1\n");
+    }else if (sensors[0]>30){
+        pwm_set_duty(PWMA, 100+80);
+        pwm_set_duty(PWMB, 100-80);
+        printf("L2\n");
+    }
+    else if (sensors[4]>30){
+        pwm_set_duty(PWMA, 100-80);
+        pwm_set_duty(PWMB, 100+80);
+        printf("R2\n");
+    }
+    else{
+        pwm_set_duty(PWMA, 100);
+        pwm_set_duty(PWMB, 100);
+        printf("M\n");
     }
 }
 

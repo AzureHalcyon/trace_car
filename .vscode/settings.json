@@ -4,5 +4,6 @@
         "turning_pid.h": "c",
         "control.h": "c",
         "control_logic.h": "c"
-    }
+    },
+    "files.encoding": "gb2312"
 }
