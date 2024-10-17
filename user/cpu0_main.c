@@ -79,8 +79,8 @@ int core0_main(void)
     adc_init(Sensor_M, ADC_8BIT);
     adc_init(Sensor_R1, ADC_8BIT);
     adc_init(Sensor_R2, ADC_8BIT);
-    pwm_init(PWMA, 1000, 10000);
-    pwm_init(PWMB, 1000, 10000);
+    pwm_init(PWMA, 1000, 0);
+    pwm_init(PWMB, 1000, 0);
     pit_ms_init(CCU60_CH0 , 25);
 
     // 此处编写用户代码 例如外设初始化代码等
@@ -103,35 +103,21 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
 }
 
 void turns(){
-    sensors[0] = adc_mean_filter_convert(Sensor_L2, 5);
-    sensors[1] = adc_mean_filter_convert(Sensor_L1, 5);
-    sensors[2] = adc_mean_filter_convert(Sensor_M, 5);
-    sensors[3] = adc_mean_filter_convert(Sensor_R1, 5);
-    sensors[4] = adc_mean_filter_convert(Sensor_R2, 5);
+    sensors[0] = adc_mean_filter_convert(Sensor_L2, 5);//纯白大约50~53，纯黑大约17~19
+    sensors[1] = adc_mean_filter_convert(Sensor_L1, 5);//纯白大约62~66，纯黑大约19~21
+    sensors[2] = adc_mean_filter_convert(Sensor_M, 5); //纯白大约89~91，纯黑大约32~34（94~98，27~34）
+    sensors[3] = adc_mean_filter_convert(Sensor_R1, 5);//纯白大约61~65，纯黑大约18~20（纯白也有68~70）
+    sensors[4] = adc_mean_filter_convert(Sensor_R2, 5);//纯白大约64~68，纯黑大约19~22
 
-    if (sensors[1]>30){
-        pwm_set_duty(PWMA, 100+50);
-        pwm_set_duty(PWMB, 100-50);
-        printf("L1\n");
-    }else if (sensors[3]>30){
-        pwm_set_duty(PWMA, 100-50);
-        pwm_set_duty(PWMB, 100+50);
-        printf("R1\n");
-    }else if (sensors[0]>30){
-        pwm_set_duty(PWMA, 100+80);
-        pwm_set_duty(PWMB, 100-80);
-        printf("L2\n");
-    }
-    else if (sensors[4]>30){
-        pwm_set_duty(PWMA, 100-80);
-        pwm_set_duty(PWMB, 100+80);
-        printf("R2\n");
-    }
-    else{
-        pwm_set_duty(PWMA, 100);
-        pwm_set_duty(PWMB, 100);
-        printf("M\n");
-    }
+
+
+    system_delay_ms(100);
+    printf("%d,",sensors[0]);
+    printf("%d,",sensors[1]);
+    printf("%d,",sensors[2]);
+    printf("%d,",sensors[3]);
+    printf("%d\n",sensors[4]);
+
 }
 
 #pragma section all restore
