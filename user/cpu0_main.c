@@ -60,7 +60,9 @@
 // **************************** 代码区域 ****************************
 
 void turns();
-float calculatePID(float error);
+int init_sensors();
+// double calculate_turn_radians(int left_encoder_pulses, int right_encoder_pulses);
+void limit();
 
 int sensors[5];
 int threshold_white[5] = {53, 64, 93, 70, 64}; // 每个传感器的纯白阈值
@@ -68,13 +70,12 @@ int threshold_black[5] = {19, 21, 34, 20, 22}; // 每个传感器的纯黑阈值
 float normalized_sensors[5];
 int white_threshold = 0.9; // 纯白阈值
 
-int base_speed = 4000; // 基础速度
-int max_speed_diff = 1000; // 最大速度差
+int base_speed = 3000; // 基础速度
+int max_speed_diff = 1500; // 最大速度差
 
-int integral_max = 100;
-
-float Kp = 3.0, Ki = 0.3, Kd = 0.7; // PID系数
-float error = 0, last_error = 0, integral = 0;
+// int integral_max = 100;
+// float Kp = 3.0, Ki = 0.3, Kd = 0.7; // PID系数
+// float error = 0, last_error = 0, integral = 0;
 
 int core0_main(void)
 {
@@ -95,6 +96,7 @@ int core0_main(void)
     adc_init(Sensor_R2, ADC_8BIT);
     pwm_init(PWMA, 1000, 0);
     pwm_init(PWMB, 1000, 0);
+    init_sensors();
     pit_ms_init(CCU60_CH0 , 25);
 
     // 此处编写用户代码 例如外设初始化代码等
@@ -116,6 +118,57 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
 
 }
 
+int init_sensors() {
+    int sensor_values[5] = {0};
+    for (int i = 0; i < 50; i++) {
+        sensor_values[0] += adc_mean_filter_convert(Sensor_L2, 10);
+        sensor_values[1] += adc_mean_filter_convert(Sensor_L1, 10);
+        sensor_values[2] += adc_mean_filter_convert(Sensor_M, 10);
+        sensor_values[3] += adc_mean_filter_convert(Sensor_R1, 10);
+        sensor_values[4] += adc_mean_filter_convert(Sensor_R2, 10);
+        printf("No.%d times\n",i);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        threshold_white[i] = sensor_values[i] / 50;
+    }
+
+    printf("success!\n");
+
+    printf("threshold_white: ");
+    printf("%d,",threshold_white[0]);
+    printf("%d,",threshold_white[1]);
+    printf("%d,",threshold_white[2]);
+    printf("%d,",threshold_white[3]);
+    printf("%d\n",threshold_white[4]);
+
+//    printf("sensors: ");
+//    printf("%d,",sensors[0]);
+//    printf("%d,",sensors[1]);
+//    printf("%d,",sensors[2]);
+//    printf("%d,",sensors[3]);
+//    printf("%d\n",sensors[4]);
+}
+
+//限幅：0~10000
+int left = 0;
+int right = 0;
+int leftCompare = 0;
+int rightCompare = 0;
+void limit(){
+    if (left > 10000) {
+        leftCompare = 10000;
+    } else if (left < 0) {
+        leftCompare = 0;
+    }else leftCompare = left;
+
+    if (right > 10000) {
+        rightCompare = 10000;
+    } else if (right < 0) {
+        rightCompare = 0;
+    }else rightCompare = right;
+}
+
 void turns(){
     sensors[0] = adc_mean_filter_convert(Sensor_L2, 10);//纯白大约50~53，纯黑大约17~19
     sensors[1] = adc_mean_filter_convert(Sensor_L1, 10);//纯白大约62~66，纯黑大约19~21
@@ -123,7 +176,12 @@ void turns(){
     sensors[3] = adc_mean_filter_convert(Sensor_R1, 10);//纯白大约61~65，纯黑大约18~20（纯白也有68~70）
     sensors[4] = adc_mean_filter_convert(Sensor_R2, 10);//纯白大约64~68，纯黑大约19~22
 
-
+    // 限制读取到的数值最大为对应传感器的纯白阈值
+    for (int i = 0; i < 5; i++) {
+        if (sensors[i] > threshold_white[i]) {
+            sensors[i] = threshold_white[i];
+        }
+    }
 
 //    system_delay_ms(100);
     
@@ -140,11 +198,11 @@ void turns(){
     // 转弯逻辑
 
     for (int i = 0; i < 5; i++) {
-        normalized_sensors[i] = (float)(sensors[i] - threshold_black[i]) / (threshold_white[i] - threshold_black[i]);
+        normalized_sensors[i] = (float)(threshold_white[i] - sensors[i]) / (threshold_white[i] - threshold_black[i]);
     }
 
-    float sum_left = normalized_sensors[0] + normalized_sensors[1];
-    float sum_right = normalized_sensors[3] + normalized_sensors[4];
+    float sum_left = normalized_sensors[0]*2 + normalized_sensors[1];
+    float sum_right = normalized_sensors[3] + normalized_sensors[4]*2;
     float sum_middle = normalized_sensors[2];
 
 //    printf("normalized_sensors: ");
@@ -159,22 +217,34 @@ void turns(){
     printf("%f,",sum_middle);
     printf("%f\n",sum_right);
 
-    if (sum_middle < 0.3 && sum_right > 0.7 && sum_left > 0.7) {
-        // 中间传感器检测到黑线，直行
+    // 根据左右传感器的总和调整PWM
+    int speed_diff = (int)(sum_left - sum_right) * max_speed_diff;
+
+    if (sum_middle > 0.8 && fabs(sum_left - sum_right) < 0.2) {
         pwm_set_duty(PWMA, base_speed);
         pwm_set_duty(PWMB, base_speed);
         printf("straight!\n");
-    } else if (fabs(sum_left - sum_right) > 0.8){
-        // 根据左右传感器的总和调整PWM
-        int speed_diff = (int)(calculatePID(sum_left - sum_right) * max_speed_diff);
-        pwm_set_duty(PWMA, base_speed - speed_diff);
-        pwm_set_duty(PWMB, base_speed + speed_diff);
+    }else if (0.85 < fabs(sum_left - sum_right) && fabs(sum_left - sum_right) < 1.3) { //小转弯
+
+        left = (base_speed + speed_diff);
+        right = (base_speed - speed_diff);
+        limit(left, right);
+        pwm_set_duty(PWMA, leftCompare);
+        pwm_set_duty(PWMB, rightCompare);
         printf("turning!\n");
-    }
+    }else if (fabs(sum_left - sum_right) > 1.3){ //大转弯
+
+        left = (base_speed + speed_diff) * 1.5;
+        right = (base_speed - speed_diff)* 1.5;
+        limit(left, right);
+        pwm_set_duty(PWMA, leftCompare);
+        pwm_set_duty(PWMB, rightCompare);
+        printf("turning!\n");
+    } 
 
     // 防跑飞保护
 
-    if (sum_middle > 0.9 && fabs(sum_left - sum_right) < 0.25) {
+    if (sum_middle <0.15 && fabs(sum_left - sum_right) < 0.25) {
         // 所有传感器都检测到纯白，停止小车
         pwm_set_duty(PWMA, 0);
         pwm_set_duty(PWMB, 0);
@@ -185,50 +255,25 @@ void turns(){
 
 }
 
+// #define WHEEL_DISTANCE 0.12  //小车左右轮之间的距离，单位：米
+// #define PULSES_PER_REV 1024 //每转编码器脉冲数(待测)
+// #define WHEEL_RADIUS 0.0225 //车轮半径，单位：米
+// #define PULSE_DISTANCE (2 * 3.1415926 * WHEEL_RADIUS / PULSES_PER_REV)//每个脉冲对应的距离(待测)
 
+// double calculate_turn_radians(int left_encoder_pulses, int right_encoder_pulses) {
+//     double delta_left = left_encoder_pulses * PULSE_DISTANCE;
+//     double delta_right = right_encoder_pulses * PULSE_DISTANCE;
+//     double theta = (delta_right - delta_left) / WHEEL_DISTANCE;
+//     return theta;
+// }
 
-//float calculateError(int *sensors) {
-//
-////黑线在左侧偏负，在右侧偏正
-//
-//return (2 * sensors[0] + sensors[1] - sensors[3] - 2 * sensors[4]);
-//
-//}
+// void theta_measure() {
+//     int left_encoder_pulses = encoder_get_count(TIM2_ENCODER);
+//     int right_encoder_pulses = encoder_get_count(TIM2_ENCODER);
+//     double theta = calculate_turn_radians(left_encoder_pulses, right_encoder_pulses);
+//     printf("theta: %f\n", theta);
+// }
 
-/**
-
-* @brief 使用位置式 PID 控制器,根据当前误差来调整车轮的速度差异，以保持小车在黑线的中间
-
-*
-
-* @param error 偏差
-
-* @return float 返回修正量
-
-
-*/
-
-float calculatePID(float error) {
-
-float P = Kp * error;
-
-integral += error;
-
-if (integral > integral_max) integral = integral_max;
-
-if (integral < -integral_max) integral = -integral_max;
-
-float I = Ki * integral;
-
-float D = Kd * (error - last_error);
-
-last_error = error;
-
-float delta = P + I + D;
-
-return delta;
-
-}
 
 #pragma section all restore
 // **************************** 代码区域 ****************************
