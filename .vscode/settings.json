@@ -4,7 +4,15 @@
         "turning_pid.h": "c",
         "control.h": "c",
         "control_logic.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "inits.h": "c",
+        "sensor.h": "c",
+        "beep.h": "c",
+        "judge.h": "c",
+        "zf_driver_gpio.h": "c",
+        "ifxccu6_timer.h": "c",
+        "ifxscueru.h": "c",
+        "encoder.h": "c"
     },
     "files.encoding": "gb2312"
 }
