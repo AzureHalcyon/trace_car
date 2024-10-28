@@ -5,7 +5,8 @@
 #include "math.h"
 #include "defines.h"
 
-void theta_measure();
 float calculate_turn_radians(int left_encoder_pulses, int right_encoder_pulses);
+float theta_measure();
+void theta_reset();
 
 #endif // __ENCODER_H__

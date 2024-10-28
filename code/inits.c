@@ -39,9 +39,8 @@ void init_sensors(){
 }
 
 void init_encoders(){
-
-    encoder_quad_init(TIM2_ENCODER, TIM2_ENCODER_CH1_P33_7, TIM2_ENCODER_CH2_P33_6);
-    encoder_quad_init(TIM3_ENCODER, TIM3_ENCODER_CH1_P02_6, TIM3_ENCODER_CH2_P02_7);
+    encoder_quad_init(TIM2_ENCODER, ENA1, ENB1);
+    encoder_quad_init(TIM3_ENCODER, ENA2, ENB2);
 
 }
 
@@ -57,5 +56,12 @@ void init_motors(){
 }
 
 void init_beep(){
-    gpio_init(BEEP, GPO, 0, GPO_OPEN_DTAIN);
+    gpio_init(BEEP, GPO, 0, GPO_PUSH_PULL);
+}
+
+void init_tft180(){
+    tft180_init ();
+    tft180_clear();
+    tft180_show_string(0, 48, "all_inited");
+    display("ready!\n");
 }

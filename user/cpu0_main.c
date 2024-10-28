@@ -53,13 +53,13 @@ int core0_main(void)
 {
     clock_init();                   // 获取时钟频率<务必保留>
     debug_init();                   // 初始化默认调试串口
+    system_start();                 // 启动定时器，记录下当前的时间
     // 此处编写用户代码 例如外设初始化代码等
     init_sensors();
     init_encoders();
     init_motors();
-    init_beep();
-    beep();
-    printf("beeped!");
+    // init_beep();
+    init_tft180();
     pit_ms_init(CCU60_CH0 , 25);
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();         // 等待所有核心初始化完毕
@@ -71,8 +71,13 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
     interrupt_global_enable(0);                     // 开启中断嵌套
     pit_clear_flag(CCU60_CH0);
 
-    theta_measure();
-    turns();
+    float angle = 0;
+    angle = theta_measure();
+    printf("%f,angle");
+
+//    get_sensors();
+//    turns();
+//    printf("yesman\n");
 }
 
 #pragma section all restore

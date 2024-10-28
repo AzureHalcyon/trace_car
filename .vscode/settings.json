@@ -12,7 +12,10 @@
         "zf_driver_gpio.h": "c",
         "ifxccu6_timer.h": "c",
         "ifxscueru.h": "c",
-        "encoder.h": "c"
+        "encoder.h": "c",
+        "defines.h": "c",
+        "tft180.h": "c",
+        "cstdio": "cpp"
     },
     "files.encoding": "gb2312"
 }

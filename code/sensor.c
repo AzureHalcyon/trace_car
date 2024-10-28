@@ -1,11 +1,12 @@
 #include "sensor.h"
 
 int sensors[5];
-int threshold_white[5] = {53, 64, 93, 70, 64}; // 每个传感器的纯白阈值
-int threshold_black[5] = {19, 21, 34, 20, 22}; // 每个传感器的纯黑阈值
+int threshold_white[5] = {0, 0, 0, 0, 0}; // 每个传感器的纯白阈值
+int threshold_black[5] = {20, 20, 35, 20, 20}; // 每个传感器的纯黑阈值
 float normalized_sensors[5];
 int white_threshold = 0.9; // 纯白阈值
-float sum_left , sum_right, sum_middle;
+float sum_left , sum_right, sum_middle; // 三个方向的传感器和
+float left_round = 0, right_round = 0; // 左右传感器的和(用于环岛)
 
 void get_sensors() {
     sensors[0] = adc_mean_filter_convert(Sensor_L2, 10);//纯白大约50~53，纯黑大约17~19
@@ -33,8 +34,7 @@ void get_sensors() {
     //如果两侧的传感器小于纯白，根据与纯白的差值调整PWM,中间如果大于纯黑，同理。
     //思路：每个传感器的阈值有所不同，先进行单位化，然后求和，根据和的大小，调整PWM，采用差速驱动
 
-    // 单位化
-
+    // 单位化，将传感器的值映射到0~1之间，0为纯白，1为纯黑
     for (int i = 0; i < 5; i++) {
         normalized_sensors[i] = (float)(threshold_white[i] - sensors[i]) / (threshold_white[i] - threshold_black[i]);
     }
@@ -43,15 +43,18 @@ void get_sensors() {
     sum_right = normalized_sensors[3] + normalized_sensors[4]*3;
     sum_middle = normalized_sensors[2];
 
-//    printf("normalized_sensors: ");
-//    printf("%f,",normalized_sensors[0]);
-//    printf("%f,",normalized_sensors[1]);
-//    printf("%f,",normalized_sensors[2]);
-//    printf("%f,",normalized_sensors[3]);
-//    printf("%f\n",normalized_sensors[4]);
-//
+    left_round = normalized_sensors[0] + normalized_sensors[1];
+    right_round = normalized_sensors[3] + normalized_sensors[4];
+
+    // printf("normalized_sensors: ");
+    // printf("%f,",normalized_sensors[0]);
+    // printf("%f,",normalized_sensors[1]);
+    // printf("%f,",normalized_sensors[2]);
+    // printf("%f,",normalized_sensors[3]);
+    // printf("%f\n",normalized_sensors[4]);
+
     // printf("sum: ");
-    printf("%f,",sum_left);
+    // printf("%f\n,",sum_left);
     // printf("%f,",sum_middle);
-    printf("%f,",sum_right);
+    // printf("%f,\n",sum_right);
 }
