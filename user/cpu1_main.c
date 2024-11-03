@@ -34,6 +34,12 @@
 ********************************************************************************************************************/
 
 #include "zf_common_headfile.h"
+#include "math.h"
+#include "inits.h"
+#include "defines.h"
+#include "sensor.h"
+#include "encoder.h"
+#include "judge.h"
 #pragma section all "cpu1_dsram"
 // 将本语句与#pragma section all restore语句之间的全局变量都放在CPU1的RAM中
 
@@ -43,11 +49,19 @@
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 
+int time = 0;
+int lastTime = 0;
+extern int rDuty , lDuty;
+extern int BaseSpeed;
+extern int StopCount;
+extern int L1, L2, M, R1, R2;
+void protect();
 void core1_main(void)
 {
     disable_Watchdog();                     // 关闭看门狗
     interrupt_global_enable(0);             // 打开全局中断
     // 此处编写用户代码 例如外设初始化代码等
+
 
 
 
@@ -57,10 +71,57 @@ void core1_main(void)
     {
         // 此处编写需要循环执行的代码
 
+//        protect();
+        // rRoundDetect();
 
 
         // 此处编写需要循环执行的代码
     }
+}
+
+
+void protect(){
+    if (normalized_sensors[0] > 0.8 && normalized_sensors[1] > 0.8 && normalized_sensors[2] > 0.8 && normalized_sensors[3] > 0.8 && normalized_sensors[4] > 0.8)
+        {
+            { // 全黑
+                StopCount++;
+            }
+            if (StopCount > 4)
+            { // 停车
+                lDuty = 0;
+                rDuty = 0;
+            }
+        }
+        if (normalized_sensors[0] < 0.2 && normalized_sensors[1] < 0.2 && normalized_sensors[2] < 0.2 && normalized_sensors[3] < 0.2 && normalized_sensors[4] < 0.2)
+        { // 全白
+            if (lastTime < 20)
+            {
+                lastTime++;
+                //            display("restoring!\n");
+                if (sum_right < sum_left)
+                {
+                    lDuty = -BaseSpeed;
+                    rDuty = BaseSpeed;
+                }
+                else
+                {
+                    lDuty = BaseSpeed;
+                    rDuty = -BaseSpeed;
+                }
+            }
+            else
+            {
+                //        display("stopped!\n");
+                lDuty = 0;
+                rDuty = 0;
+            }
+        }
+        else
+        {
+            lastTime = 0;
+        }
+        //    display("rDuty:%d\n",rDuty);
+        //    display("lDuty:%d\n",lDuty);
 }
 #pragma section all restore
 // **************************** 代码区域 ****************************

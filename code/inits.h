@@ -9,10 +9,10 @@
 #include "beep.h"
 #include "tft180.h"
 
+void init_tft180();
 void init_sensors();
 void init_encoders();
 void init_motors();
 void init_beep();
-void init_tft180();
 
 #endif // !__INITS_H__

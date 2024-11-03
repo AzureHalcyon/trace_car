@@ -12,6 +12,10 @@
 #define ENB1                    (TIM2_ENCODER_CH2_P33_6)
 #define ENA2                    (TIM3_ENCODER_CH1_P02_6)
 #define ENB2                    (TIM3_ENCODER_CH2_P02_7)
+#define LED1                    (P21_4)
+#define LED2                    (P21_5)
+#define LED3                    (P20_8)
+#define LED4                    (P20_9)
 
 #define Sensor_L2               (ADC0_CH0_A0)
 #define Sensor_L1               (ADC0_CH1_A1)

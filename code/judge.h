@@ -5,9 +5,13 @@
 #include "math.h"
 #include "defines.h"
 #include "sensor.h"
-//#include "encoder.h"
+#include "encoder.h"
+#include "motor.h"
+#include "pid.h"
 
-void limit();
-void turns();
+int LinerDetect();
+void rRoundDetect();
+void lRoundDetect();
+void JudgeThread();
 
 #endif // __JUDGE_H__

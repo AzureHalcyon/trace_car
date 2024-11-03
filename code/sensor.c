@@ -4,9 +4,11 @@ int sensors[5];
 int threshold_white[5] = {0, 0, 0, 0, 0}; // 每个传感器的纯白阈值
 int threshold_black[5] = {20, 20, 35, 20, 20}; // 每个传感器的纯黑阈值
 float normalized_sensors[5];
-int white_threshold = 0.9; // 纯白阈值
+int L1 = 0, L2 = 0, M = 0, R1 = 0, R2 = 0;
+int white_threshold = 0.1; // 纯白阈值
+int black_threshold = 0.8; // 纯黑阈值
 float sum_left , sum_right, sum_middle; // 三个方向的传感器和
-float left_round = 0, right_round = 0; // 左右传感器的和(用于环岛)
+// float left_round = 0, right_round = 0; // 左右传感器的和(用于环岛)
 
 void get_sensors() {
     sensors[0] = adc_mean_filter_convert(Sensor_L2, 10);//纯白大约50~53，纯黑大约17~19
@@ -22,7 +24,7 @@ void get_sensors() {
         }
     }
 
-//   system_delay_ms(100);
+//    system_delay_ms(100);
     
 //    printf("sensors: ");
 //    printf("%d,",sensors[0]);
@@ -37,24 +39,83 @@ void get_sensors() {
     // 单位化，将传感器的值映射到0~1之间，0为纯白，1为纯黑
     for (int i = 0; i < 5; i++) {
         normalized_sensors[i] = (float)(threshold_white[i] - sensors[i]) / (threshold_white[i] - threshold_black[i]);
+        if (normalized_sensors[i] < 0.08) {//防止传感器误差
+            normalized_sensors[i] = 0;
+        }
     }
 
-    sum_left = normalized_sensors[0]*3 + normalized_sensors[1];
-    sum_right = normalized_sensors[3] + normalized_sensors[4]*3;
+    sum_left = normalized_sensors[0]*1.5 + normalized_sensors[1];
+    sum_right = normalized_sensors[3] + normalized_sensors[4]*1.5;
     sum_middle = normalized_sensors[2];
 
-    left_round = normalized_sensors[0] + normalized_sensors[1];
-    right_round = normalized_sensors[3] + normalized_sensors[4];
+    // left_round = normalized_sensors[0] + normalized_sensors[1];
+    // right_round = normalized_sensors[3] + normalized_sensors[4];
 
-    // printf("normalized_sensors: ");
-    // printf("%f,",normalized_sensors[0]);
-    // printf("%f,",normalized_sensors[1]);
-    // printf("%f,",normalized_sensors[2]);
-    // printf("%f,",normalized_sensors[3]);
-    // printf("%f\n",normalized_sensors[4]);
+    if (normalized_sensors[0] >  0.8) {
+        gpio_set_level(LED1,0);
+    }else{
+        gpio_set_level(LED1,1);
+    }
+    if (normalized_sensors[1] >  0.8) {
+        gpio_set_level(LED2,0);
+    }else{
+        gpio_set_level(LED2,1);
+    }
+    if (normalized_sensors[3] >  0.8) {
+        gpio_set_level(LED3,0);
+    }else{  
+        gpio_set_level(LED3,1);
+    }
+    if (normalized_sensors[4] >  0.8) {
+        gpio_set_level(LED4,0);
+    }else{  
+        gpio_set_level(LED4,1);
+    }
 
-    // printf("sum: ");
-    // printf("%f\n,",sum_left);
+//     printf("normalized_sensors: ");
+//     printf("%f,",normalized_sensors[0]);
+//     printf("%f,",normalized_sensors[1]);
+//     printf("%f,",normalized_sensors[2]);
+//     printf("%f,",normalized_sensors[3]);
+//     printf("%f\n",normalized_sensors[4]);
+
+//    printf("sum: ");
+    // printf("%f,",sum_left);
     // printf("%f,",sum_middle);
     // printf("%f,\n",sum_right);
+
+//    printf("round: ");
+//    printf("%f\n,",left_round);
+//    printf("%f,",sum_middle);
+//    printf("%f\n,",right_round);
+
+}
+
+// 将传感器的值二值化
+void BinerySensors(){
+    if (normalized_sensors[0] > 0.8) {
+        L1 = 1;
+    }else{
+        L1 = 0;
+    }
+    if (normalized_sensors[1] > 0.8) {
+        L2 = 1;
+    }else{
+        L2 = 0;
+    }
+    if (normalized_sensors[2] > 0.8) {
+        M = 1;
+    }else{
+        M = 0;
+    }
+    if (normalized_sensors[3] > 0.8) {
+        R1 = 1;
+    }else{
+        R1 = 0;
+    }
+    if (normalized_sensors[4] > 0.8) {
+        R2 = 1;
+    }else{
+        R2 = 0;
+    }
 }

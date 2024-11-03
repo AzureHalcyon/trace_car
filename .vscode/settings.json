@@ -15,7 +15,9 @@
         "encoder.h": "c",
         "defines.h": "c",
         "tft180.h": "c",
-        "cstdio": "cpp"
+        "cstdio": "cpp",
+        "motor.h": "c",
+        "zf_driver_pwm.h": "c"
     },
     "files.encoding": "gb2312"
 }
