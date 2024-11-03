@@ -33,6 +33,14 @@
 * 2022-09-15       pudding            first version
 ********************************************************************************************************************/
 #include "zf_common_headfile.h"
+#include "math.h"
+#include "inits.h"
+#include "defines.h"
+#include "sensor.h"
+#include "encoder.h"
+#include "judge.h"
+
+
 #pragma section all "cpu0_dsram"
 // 将本语句与#pragma section all restore语句之间的全局变量都放在CPU0的RAM中
 
@@ -40,28 +48,36 @@
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 // 本例程是开源库空工程 可用作移植或者测试各类内外设
 
-
 // **************************** 代码区域 ****************************
+
+extern float theta;
+
 int core0_main(void)
 {
     clock_init();                   // 获取时钟频率<务必保留>
     debug_init();                   // 初始化默认调试串口
+    system_start();                 // 启动定时器，记录下当前的时间
     // 此处编写用户代码 例如外设初始化代码等
-
-
-
-
+    init_tft180();
+    init_sensors();
+    init_encoders();
+    init_motors();
+//    init_beep();
+//    display_at(0, 64, "Hello, world!\n");
+    pit_ms_init(CCU60_CH0 , 10);
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();         // 等待所有核心初始化完毕
-    while (TRUE)
-    {
-        // 此处编写需要循环执行的代码
+    while (TRUE){}
+}
 
-
-
-
-        // 此处编写需要循环执行的代码
-    }
+IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
+{
+    interrupt_global_enable(0);                     // 开启中断嵌套
+    pit_clear_flag(CCU60_CH0);
+    get_sensors();
+    theta_measure();
+    JudgeThread();
+//    printf("%f\n",theta);
 }
 
 #pragma section all restore

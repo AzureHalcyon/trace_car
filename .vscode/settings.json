@@ -3,6 +3,21 @@
         "zf_common_headfile.h": "c",
         "turning_pid.h": "c",
         "control.h": "c",
-        "control_logic.h": "c"
-    }
+        "control_logic.h": "c",
+        "math.h": "c",
+        "inits.h": "c",
+        "sensor.h": "c",
+        "beep.h": "c",
+        "judge.h": "c",
+        "zf_driver_gpio.h": "c",
+        "ifxccu6_timer.h": "c",
+        "ifxscueru.h": "c",
+        "encoder.h": "c",
+        "defines.h": "c",
+        "tft180.h": "c",
+        "cstdio": "cpp",
+        "motor.h": "c",
+        "zf_driver_pwm.h": "c"
+    },
+    "files.encoding": "gb2312"
 }
