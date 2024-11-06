@@ -26,12 +26,12 @@ void get_sensors() {
 
 //    system_delay_ms(100);
     
-//    printf("sensors: ");
-//    printf("%d,",sensors[0]);
-//    printf("%d,",sensors[1]);
-//    printf("%d,",sensors[2]);
-//    printf("%d,",sensors[3]);
-//    printf("%d\n",sensors[4]);
+    printf("sensors: ");
+    printf("%d,",sensors[0]);
+    printf("%d,",sensors[1]);
+    printf("%d,",sensors[2]);
+    printf("%d,",sensors[3]);
+    printf("%d\n",sensors[4]);
 
     //如果两侧的传感器小于纯白，根据与纯白的差值调整PWM,中间如果大于纯黑，同理。
     //思路：每个传感器的阈值有所不同，先进行单位化，然后求和，根据和的大小，调整PWM，采用差速驱动
@@ -43,6 +43,10 @@ void get_sensors() {
             normalized_sensors[i] = 0;
         }
     }
+    printf("%f,%f,%f,%f,%f\n",normalized_sensors[0],normalized_sensors[1],normalized_sensors[2],normalized_sensors[3],normalized_sensors[4]);
+    printf("%f\n",normalized_sensors[0]+normalized_sensors[1]+normalized_sensors[2]+normalized_sensors[3]+normalized_sensors[4]);
+    printf("%f\n",(normalized_sensors[0]+normalized_sensors[1])-(normalized_sensors[3]+normalized_sensors[4]));
+
 
     sum_left = normalized_sensors[0]*1.5 + normalized_sensors[1];
     sum_right = normalized_sensors[3] + normalized_sensors[4]*1.5;

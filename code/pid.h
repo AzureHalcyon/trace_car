@@ -10,4 +10,7 @@
 float LinerPID();
 float RoundPID();
 
+extern int turn_left_count;
+extern int turn_right_count;
+
 #endif // __PID_H__
