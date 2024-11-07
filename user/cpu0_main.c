@@ -64,7 +64,7 @@ int core0_main(void)
     init_motors();
 //    init_beep();
 //    display_at(0, 64, "Hello, world!\n");
-    pit_ms_init(CCU60_CH0 , 10);
+    pit_ms_init(CCU60_CH0 , 5);
     // 此处编写用户代码 例如外设初始化代码等
     cpu_wait_event_ready();         // 等待所有核心初始化完毕
     while (TRUE){}
@@ -74,9 +74,14 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
 {
     interrupt_global_enable(0);                     // 开启中断嵌套
     pit_clear_flag(CCU60_CH0);
+//    int number=6;
+    //display_at(120, 120, "%d",number);
     get_sensors();
     theta_measure();
+//    set_motor_speed(PWMA, 1000);
+//    set_motor_speed(PWMB, 1000);
     JudgeThread();
+
 //    printf("%f\n",theta);
 }
 

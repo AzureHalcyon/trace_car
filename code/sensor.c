@@ -2,7 +2,7 @@
 
 int sensors[5];
 int threshold_white[5] = {0, 0, 0, 0, 0}; // 每个传感器的纯白阈值
-int threshold_black[5] = {20, 20, 35, 20, 20}; // 每个传感器的纯黑阈值
+int threshold_black[5] = {305, 335, 375, 335, 305}; // 每个传感器的纯黑阈值
 float normalized_sensors[5];
 int L1 = 0, L2 = 0, M = 0, R1 = 0, R2 = 0;
 int white_threshold = 0.1; // 纯白阈值
@@ -16,6 +16,12 @@ void get_sensors() {
     sensors[2] = adc_mean_filter_convert(Sensor_M, 10); //纯白大约89~91，纯黑大约32~34（94~98，27~34）
     sensors[3] = adc_mean_filter_convert(Sensor_R1, 10);//纯白大约61~65，纯黑大约18~20（纯白也有68~70）
     sensors[4] = adc_mean_filter_convert(Sensor_R2, 10);//纯白大约64~68，纯黑大约19~22
+//    printf("%d,%d,%d,%d,%d\n",sensors[0],sensors[1],sensors[2],sensors[3],sensors[4]);
+//    tft180_show_int(0,20,sensors[0],3);
+//    tft180_show_int(50,20,sensors[1],3);
+//    tft180_show_int(30,40,sensors[2],3);
+//    tft180_show_int(0,60,sensors[3],3);
+//    tft180_show_int(50,60,sensors[4],3);
 
     // 限制读取到的数值最大为对应传感器的纯白阈值
     for (int i = 0; i < 5; i++) {
@@ -43,6 +49,12 @@ void get_sensors() {
             normalized_sensors[i] = 0;
         }
     }
+    printf("%f\n",normalized_sensors[0]+normalized_sensors[1]+normalized_sensors[2]+normalized_sensors[3]+normalized_sensors[4]);
+
+ //   printf("%f,%f,%f,%f,%f\n",normalized_sensors[0],normalized_sensors[1],normalized_sensors[2],normalized_sensors[3],normalized_sensors[4]);
+   // printf("%f\n",normalized_sensors[0]+normalized_sensors[1]+normalized_sensors[2]+normalized_sensors[3]+normalized_sensors[4]);
+   // printf("%f\n",(normalized_sensors[0]+normalized_sensors[1])-(normalized_sensors[3]+normalized_sensors[4]));
+
 
     sum_left = normalized_sensors[0]*1.5 + normalized_sensors[1];
     sum_right = normalized_sensors[3] + normalized_sensors[4]*1.5;

@@ -1,11 +1,11 @@
 #include "inits.h"
 
 void init_sensors(){
-    adc_init(Sensor_L1, ADC_8BIT);
-    adc_init(Sensor_L2, ADC_8BIT);
-    adc_init(Sensor_M, ADC_8BIT);
-    adc_init(Sensor_R1, ADC_8BIT);
-    adc_init(Sensor_R2, ADC_8BIT);
+    adc_init(Sensor_L1, ADC_12BIT);
+    adc_init(Sensor_L2, ADC_12BIT);
+    adc_init(Sensor_M, ADC_12BIT);
+    adc_init(Sensor_R1, ADC_12BIT);
+    adc_init(Sensor_R2, ADC_12BIT);
 
     gpio_init(LED1, GPO, GPIO_HIGH, GPO_PUSH_PULL);
     gpio_init(LED2, GPO, GPIO_HIGH, GPO_PUSH_PULL);
@@ -42,14 +42,14 @@ void init_sensors(){
 //    printf("%d,",sensors[3]);
 //    printf("%d\n",sensors[4]);
 
-    display("sensors inited\n");
+    //display("sensors inited\n");
 }
 
 void init_encoders(){
     encoder_quad_init(TIM2_ENCODER, ENA1, ENB1);
     encoder_quad_init(TIM3_ENCODER, ENA2, ENB2);
 
-    display("encoders inited\n");
+    //display("encoders inited\n");
 }
 
 void init_motors(){
@@ -62,7 +62,7 @@ void init_motors(){
     pwm_init(PWMA, 1000, 0);
     pwm_init(PWMB, 1000, 0);
 
-    display("motors inited\n");
+    //display("motors inited\n");
 }
 
 void init_beep(){
