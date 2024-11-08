@@ -7,7 +7,10 @@
 #include "defines.h"
 #include "sensor.h"
 
-float LinerPID();
-float RoundPID();
+float LinerPID(void);
+float RoundPID(void);
+
+extern int turn_left_count;
+extern int turn_right_count;
 
 #endif // __PID_H__

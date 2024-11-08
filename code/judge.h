@@ -8,10 +8,8 @@
 #include "encoder.h"
 #include "motor.h"
 #include "pid.h"
+#include "car_switch_menu.h"
 
-int LinerDetect();
-void rRoundDetect();
-void lRoundDetect();
 void JudgeThread();
 
 #endif // __JUDGE_H__
